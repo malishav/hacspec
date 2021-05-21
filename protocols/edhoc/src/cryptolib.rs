@@ -507,3 +507,8 @@ pub fn aead_decrypt(
         _ => Err(unsupported_algorithm),
     }
 }
+
+pub fn edhoc_kdf(ha: &HashAlgorithm, key: &KEY, th: &HASH, label: &str, len: usize) -> Res<Bytes> {
+    Err(unsupported_algorithm)
+}
+

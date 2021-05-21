@@ -164,6 +164,43 @@ pub fn check_lbytes3_full(b: &Bytes) -> Res<()> {
 }
 
 
+pub fn make_msg1(method: METHOD, corr:usize, suite:CIPHERSUITE, pk:&KEMPK, c_i:&Bytes, ad_1:&Bytes) -> Res<Bytes> {
+    encode_null()                                                   // mandatory C_1
+        .concat(encode_unsigned_u8((4 * method as u8 + corr) as u8))// METHOD_CORR
+        .concat(encode_unsigned_u8(suite.0))                        // SINGLE SELECTED SUITE for now
+        .concat(encode_bytes(pk))                                   // G_X
+        .concat(encode_bytes(c_i))                                  // C_I
+        .concat(encode_bytes(ad_1))                                 // AD_1
+}
+
+pub fn make_msg2(data2: &Bytes, ciphertext2: &Bytes) -> Res<Bytes> {
+    Err(parse_failed)
+}
+
+pub fn make_info(aea: &AEADAlgorithm, th: &Bytes, len: usize) -> Res<Bytes> {
+    Err(parse_failed)
+}
+
+pub fn make_plaintext(id: &Bytes, sg: &Bytes, ad: &Bytes) -> Res<Bytes> {
+    Err(parse_failed)
+}
+
+pub fn check_msg1(m:&Bytes) -> Res<()> {
+    Err(parse_failed)
+}
+
+pub fn parse_msg1(suite:CIPHERSUITE, msg: &Bytes) -> Res<(corr:usize, c_i: Bytes, pk_i: Bytes)> {
+    Err(parse_failed)
+}
+
+pub fn make_data_2(c_i: &Bytes, pk_r: &Bytes, c_r: &Bytes) -> Res<Bytes> {
+    Err(parse_failed)
+}
+
+pub fn make_aad(label: &Bytes, id_cred_r: &Bytes,th_2: &Bytes,cred_r: &Bytes, ad_2: &Bytes) -> Res<()> {
+    Err(parse_failed)
+}
+
 #[derive(Clone, Copy, PartialEq)]
 pub enum METHOD {
     SIG_SIG = 0,
@@ -191,12 +228,4 @@ pub struct CIPHERSUITE(
     pub SignatureScheme
 );
 
-
-pub fn make_msg1(algs:ALGS,corr:usize,c_i:&Bytes,pk:&KEMPK,ad_1:&Bytes) -> Res<Bytes> {
-    Err(parse_failed)
-}
-
-pub fn check_msg1(m:&Bytes) -> Res<()> {
-    Err(parse_failed)
-}
 
