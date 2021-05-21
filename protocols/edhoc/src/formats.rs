@@ -173,12 +173,22 @@ pub enum METHOD {
 }
 
 #[derive(Clone, Copy, PartialEq)]
-pub struct ALGS(
-    pub METHOD,
-    pub HashAlgorithm,
+pub enum CIPHERSUITEID {
+    SUITE_0 = 0, // find better reference to the suites, use of alg ids is too long
+    SUITE_1 = 1,
+    SUITE_2 = 2,
+    SUITE_3 = 3,
+    SUITE_4 = 4,
+    SUITE_5 = 5
+}
+
+#[derive(Clone, Copy, PartialEq)]
+pub struct CIPHERSUITE(
+    pub CIPHERSUITEID,
     pub AEADAlgorithm,
-    pub SignatureScheme,
-    pub KEMScheme
+    pub HashAlgorithm,
+    pub KEMScheme,
+    pub SignatureScheme
 );
 
 

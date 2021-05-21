@@ -9,23 +9,23 @@ pub struct Transcript_TH_2(pub HashAlgorithm, pub HASH);
 pub struct Transcript_TH_3(pub HashAlgorithm, pub HASH);
 pub struct Transcript_TH_4(pub HashAlgorithm, pub HASH);
 
-pub struct InitiatorPostMsg1(pub CONNID, pub ALGS, pub KEMSK, pub KEMPK, Transcript_Msg1); //May need Responder Identifier
-pub struct ResponderPostMsg2(pub CONNID, pub CONNID, pub ALGS, pub KEMPK, pub KEMPK, pub KEY, pub Transcript_TH_2, pub Bytes); 
-pub struct InitiatorComplete(pub CONNID, pub CONNID, pub ALGS, pub KEMPK, pub KEMPK, pub KEY, pub Transcript_TH_4); 
-pub struct ResponderComplete(pub CONNID, pub CONNID, pub ALGS, pub KEMPK, pub KEMPK, pub KEY, pub Transcript_TH_4);
+pub struct InitiatorPostMsg1(pub CONNID, pub METHOD, pub CIPHERSUITE, pub KEMSK, pub KEMPK, Transcript_Msg1); //May need Responder Identifier
+pub struct ResponderPostMsg2(pub CONNID, pub CONNID, pub METHOD, pub CIPHERSUITE, pub KEMPK, pub KEMPK, pub KEY, pub Transcript_TH_2, pub Bytes);
+pub struct InitiatorComplete(pub CONNID, pub CONNID, pub METHOD, pub CIPHERSUITE, pub KEMPK, pub KEMPK, pub KEY, pub Transcript_TH_4);
+pub struct ResponderComplete(pub CONNID, pub CONNID, pub METHOD, pub CIPHERSUITE, pub KEMPK, pub KEMPK, pub KEY, pub Transcript_TH_4);
 
-pub fn get_msg1(algs:ALGS, corr:usize, c_i:CONNID, ad_1:&Bytes, entropy:Bytes32) -> Res<(Bytes , InitiatorPostMsg1)> {
-    let ALGS(method,ha,aea,ss,ks) = algs;
+pub fn get_msg1(method: METHOD, suite:CIPHERSUITE, corr:usize, c_i:CONNID, ad_1:&Bytes, entropy:Entropy) -> Res<(Bytes , InitiatorPostMsg1)> {
+    let CIPHERSUITE(id, aea, ha, ks, ss) = suite;
     let sk = KEMSK::from_seq(&entropy);
     let pk = secret_to_public(&ks,&sk)?;
-    let msg1 = make_msg1(algs,corr,&c_i,&pk,ad_1)?;
+    let msg1 = make_msg1(method, corr, suite, &pk, &c_i, ad_1)?;
     let th_1 = Transcript_Msg1(ha,empty().concat(&msg1));
-    Ok((msg1,InitiatorPostMsg1(c_i,algs,sk,pk,th_1)))
+    Ok((msg1,InitiatorPostMsg1(c_i, method, suite, sk, pk, th_1)))
 }
 
-pub fn put_msg1(algs:ALGS, c_r:CONNID, id_cred_r:CREDID, cred_r:CRED, ad_2:&Bytes, skR:SIGK, msg1:&Bytes, entropy:Bytes32) -> Res<(Bytes , ResponderPostMsg2)> {
-    let ALGS(method,ha,aea,ss,ks) = algs;
-    let (corr,c_i,pk_i) = parse_msg1(algs,&msg1)?;
+pub fn put_msg1(method: METHOD, suite:CIPHERSUITE, c_r:CONNID, id_cred_r:CREDID, cred_r:CRED, ad_2:&Bytes, skR:SIGK, msg1:&Bytes, entropy:Entropy) -> Res<(Bytes , ResponderPostMsg2)> {
+    let CIPHERSUITE(id, aea, ha, ks, ss) = suite;
+    let (corr, c_i, pk_i) = parse_msg1(suite, &msg1)?;
     let sk_r = KEMSK::from_seq(&entropy);
     let pk_r = secret_to_public(&ks,&sk)?;
     let gxy = ecdh(ks, &sk_r, pk_i)?;
