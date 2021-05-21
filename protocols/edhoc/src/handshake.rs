@@ -27,25 +27,25 @@ pub fn put_msg1(method: METHOD, suite:CIPHERSUITE, c_r:CONNID, id_cred_r:CREDID,
     let CIPHERSUITE(id, aea, ha, ks, ss) = suite;
     let (corr, c_i, pk_i) = parse_msg1(suite, &msg1)?;
     let sk_r = KEMSK::from_seq(&entropy);
-    let pk_r = secret_to_public(&ks,&sk)?;
-    let gxy = ecdh(ks, &sk_r, pk_i)?;
-    let prk_2e = hkdf_extract(ha,empty(),gxy)?;
-    let data_2 = make_data_2(c_i,pk_r,c_r)?;
+    let pk_r = secret_to_public(&ks,&sk_r)?;
+    let gxy = ecdh(&ks, &sk_r, pk_i)?;
+    let prk_2e = hkdf_extract(&ha, &empty(), &gxy)?;
+    let data_2 = make_data_2(&c_i, &pk_r, &c_r)?;
     let tx = msg1.concat(&data_2);
-    let th_2 = Transcript_TH_2(ha,hash(ha,tx)?);
-    let prk_2e3m = prk2e; // ASSUMING SIGNATURE KEY
-    let aad = make_aad("Encrypt0",id_cred_r,th_2,cred_r,ad_2)?;
-    let k2m = edhoc_kdf(ha,prk3e2m,th_2,"K_2m",aead_key_len(aea))?;
-    let iv2m = edhoc_kdf(ha,prk3e2m,th_2,"IV_2m",aead_iv_len(aea))?;
-    let mac_2 = aead_encrypt(aea,k2m,iv2m,empty(),aad)?;
-    let sv = make_sigval("Signature1",id_cred_r,th_2,cred_r,id_2,mac_2)?;
-    let sg = sign(ss,skR,sv)?;
+    let th_2 = Transcript_TH_2(ha, hash(&ha, &tx)?);
+    let prk_2e3m = prk_2e; // ASSUMING SIGNATURE KEY
+    let aad = make_aad("Encrypt0", &id_cred_r, &th_2.1, &cred_r, &ad_2)?;
+    let k2m = edhoc_kdf(&ha, &prk_2e3m, &th_2.1, "K_2m", ae_key_len(&aea))?;
+    let iv2m = edhoc_kdf(&ha, &prk_2e3m, &th_2.1, "IV_2m", ae_iv_len(&aea))?;
+    let mac_2 = aead_encrypt(&aea, &k2m, &iv2m, &empty(), &aad)?;
+    let sv = make_sigval("Signature1", id_cred_r, th_2, cred_r, ad_2, mac_2)?;
+    let sg = sign(ss, &skR, sv, entropy)?;
     let plaintext = make_plaintext(id_cred_r,sg, ad_2)?;
-    let info = get_info(aea,"",th_2,plaintext.len())?;
-    let keystream = hkdf_expand(ha,prk_2e,info,plaintext.len())?;
+    let info = make_info(aea, "", th_2, plaintext.len())?;
+    let keystream = hkdf_expand(&ha, &prk_2e,info,plaintext.len())?;
     let ciphertext = plaintext ^ keystream;
-    let msg2 = make_msg2(data_2,&ciphertext);
-    Ok((msg2,ResponderPostMsg2(c_i,c_r,algs,pk_i,pk_r,prk2e3m,th_2,ciphertext))
+    let msg2 = make_msg2(data_2, &ciphertext);
+    Ok((msg2, ResponderPostMsg2(c_i, c_r, method, suite, pk_i, pk_r, prk_2e3m, th_2, ciphertext)))
 }
 
 pub fn put_msg2(st:InitiatorPostMsg1, skI:SIGK, vkR:VERK, msg2:&Bytes) -> Res<(Bytes , InitiatorComplete)> {
