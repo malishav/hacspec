@@ -41,6 +41,17 @@ function typecheck {
     outname=$(tr '[:lower:]' '[:upper:]' <<<"${outname:0:1}")${outname:1}
     cargo hacspec -e v --dir ../target/coq/ -o ${outname} $1
   fi
+  if [ "$5" == "coq" ];
+  then
+    echo "    extracting coq ..."
+    mkdir -p target/coq
+    cratename=$1
+    prefix="hacspec-"
+    outname=${cratename#"$prefix"}
+    # capitalize first letter - macOS safe version (bash <= 3.2)
+    outname=$(tr '[:lower:]' '[:upper:]' <<<"${outname:0:1}")${outname:1}
+    cargo hacspec -o target/coq/${outname}.v $1
+  fi
 }
 
 cwd=$(cd $(dirname $0); pwd -P)
